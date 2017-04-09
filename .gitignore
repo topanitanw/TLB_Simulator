@@ -1,4 +1,6 @@
+# emacs temp files
 *~
-Cache
+.#*
+cache
 __pycache__
 

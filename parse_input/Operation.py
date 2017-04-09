@@ -1,6 +1,7 @@
 import enum
 
 class Operation(enum.Enum):
-  READ = 0
-  WRITE = 1
+  DATA_READ = 0
+  DATA_WRITE = 1
+  INSTRUCTION_FETCH = 2
   
