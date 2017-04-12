@@ -1,8 +1,13 @@
+import sys
+sys.path.append('.')
 import statistics as stats
-from structure import *
+from structure import Structure
 import entry as tlb_entry
 
 class Tlb:
+  '''
+  TLB class
+  '''
   def __init__(self, tlb_type, entry_num):
     self.stats = stats.Statistics()
     self.tlb_type = tlb_type
@@ -11,16 +16,22 @@ class Tlb:
     if tlb_type == Structure.FULLY_ASSOCIATIVE:
       self.content = [tlb_entry.Entry()] * entry_num
       self.set_num = 1
-      
+
     elif tlb_type == Structure.SET2_ASSOCIATIVE:
       self.content = [[tlb_entry.Entry()] * 2] * entry_num
       self.set_num = 2
-      
+
     elif tlb_type == Structure.SET4_ASSOCIATIVE:
       self.content = [[tlb_entry.Entry()] * 4] * entry_num
       self.set_num = 4
 
+    else:
+      raise NotImplementedError
+
   def __str__(self):
+    '''
+    String representation of the TLB class
+    '''
     tlb_str = "\n\n-------------------- TLB Status --------------------\n"
     tlb_str += "tlb type: "+str(self.tlb_type)+" "
     tlb_str += "entry_num: "+str(self.entry_num)+"\n"
@@ -29,11 +40,14 @@ class Tlb:
     return tlb_str
 
   def print_content(self):
+    '''
+    String representation of the TLB content
+    '''
     content_str = ""
     if self.tlb_type == Structure.FULLY_ASSOCIATIVE:
       for i in range(self.entry_num):
         content_str += ("entry: %d %s\n" %(i, str(self.content[i])))
-      
+
     else:
       for ientry in range(self.entry_num):
         content_str += ("entry: %d" % ientry)
@@ -41,7 +55,7 @@ class Tlb:
           content_str += "\t%s" %(str(self.content[ientry][jset]))
         content_str += "\n"
     return content_str
-    
+
   def get_hit_count(self):
     return self.stats.get_hit_count()
   def get_miss_count(self):
@@ -56,12 +70,26 @@ class Tlb:
     return self.set_num
 
   def lookup(self, dirty=False, tag=0, lru=0):
+    '''
+    TLB look up method
+
+    return:
+      True if TLB hits
+      False if TLB misses
+    '''
     if self.tlb_type == Structure.FULLY_ASSOCIATIVE:
       res = self.lookup_fa(dirty, tag, lru)
       self.stats.lookup_update(res)
       return res
+    elif self.tlb_type == Structure.SET2_ASSOCIATIVE or \
+         self.tlb_type == Structure.SET4_ASSOCIATIVE:
+      res = self.lookup_set(dirty, tag, lru)
+      self.stats.lookup_update(res)
+      return res
+    else:
+      raise NotImplementedError
 
-  # TLB fully associative function  
+  # TLB fully associative function
   def lookup_fa(self, dirty=False, tag=0, lru=0):
     for i in range(self.entry_num):
       if self.content[i].get_valid():
@@ -71,23 +99,64 @@ class Tlb:
             self.content[i].set_dirty(dirty)
           return True # hit
         continue
-        
+
       self.content[i] = tlb_entry.Entry(True, dirty, tag, lru)
       return False # miss
 
-    self.evict_fa(dirty, tag, lru)
-    return False
+    self.evict_fa_lru(dirty, tag, lru)
+    return False # miss
 
-  def evict_fa(self, dirty, tag, lru):
+  def evict_fa_lru(self, dirty, tag, lru):
+    '''
+    TLB LRU replacement for fully associative TLB
+    '''
     min_index = 0
     # python 3 does not have the max integer
-    min_lru = float ("inf")
+    min_lru = float("inf")
     for i in range(self.entry_num):
       if min_lru > self.content[i].get_lru():
         min_lru = self.content[i].get_lru()
         min_index = i
-    print(min_index, min_lru)
+
     self.content[min_index] = tlb_entry.Entry(True, dirty, tag, lru)
-    
+
+
+  def lookup_set(self, dirty=False, tag=0, lru=0):
+    '''
+    TLB lookup method for the x-set associative TLB
+    '''
+    for ientry in range(self.entry_num):
+      for iset in range(self.set_num):
+        if self.content[ientry][iset].get_valid():
+          if self.content[ientry][iset].get_tag() == tag:
+            self.content[ientry][iset].update_lru(lru)
+            if dirty:
+              self.content[ientry][iset].set_dirty(dirty)
+            return True # hit
+          continue
+
+        self.content[ientry][iset] = tlb_entry.Entry(True, dirty, tag, lru)
+        return False # miss
+
+    self.evict_set_lru(dirty, tag, lru)
+    return False
+
+  def evict_set_lru(self, dirty, tag, lru):
+    '''
+    TLB LRU replacement for fully associative TLB
+    '''
+    min_ientry = 0
+    min_iset = 0
+    # python 3 does not have the max integer
+    min_lru = float("inf")
+    for ientry in range(self.entry_num):
+      for iset in range(self.set_num):
+        if min_lru > self.content[ientry][iset].get_lru():
+          min_lru = self.content[ientry][iset].get_lru()
+          min_ientry = ientry
+          min_iset = iset
+
+    self.content[min_ientry][min_iset] = tlb_entry.Entry(True, dirty, tag, lru)
+
+  # TODO
   # flush_entire_tlb
-  # flush_entry
