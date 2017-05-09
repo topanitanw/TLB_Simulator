@@ -21,7 +21,7 @@ class Cpu:
     self.init_tlb(self.itlb, self.itlb_total_level,
                   self.itlb_stats, yconfig['cpu']['tlb']['instruction'],
                   False)
-
+    
   def init_tlb(self, tlb_lst, tlb_len, tlb_stats, yconfig, data=True):
     for l in range(tlb_len):
       if yconfig[l]['private'] or data:
