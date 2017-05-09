@@ -1,4 +1,13 @@
-from Operation import Operation
+import enum
+
+class Operation(enum.Enum):
+  DATA_READ = 0
+  DATA_WRITE = 1
+  INSTRUCTION_FETCH = 2
+  IGNORE = 3
+  
+  def __eq__(self, other):
+    return self.value == other.value
 
 class MemRequest:
   def __init__(self, line):
@@ -7,9 +16,9 @@ class MemRequest:
     
     self.vaddr = int(line[2], 16)
     if line[1].lower() == 'r':
-      self.oper = Operation.READ
+      self.oper = Operation.DATA_READ
     elif line[1].lower() == 'w':
-      self.oper = Operation.WRITE
+      self.oper = Operation.DATA_WRITE
     else:
       raise ValueError("Unexpected Operations: ", line[1])
 
