@@ -32,10 +32,11 @@ class Tlb:
       self.content = [tlb_entry.Entry()] * entry_num
 
     elif tlb_type == Structure.DIRECT_MAP:
+      raise NotImplementedError("The direct map tlb is not implemented yet\n")
       self.set_num = 1
       # the index =
-      # the total number of entries / N (number of sets)
-      self.set_index = int(entry_num / 2)
+      # the total number of entries
+      self.set_index = entry_num
       self.init_content_set()
       
     elif tlb_type == Structure.SET2_ASSOCIATIVE:
@@ -171,7 +172,8 @@ class Tlb:
     '''
     TLB lookup method for the x-set associative TLB
     '''
-    for iset in range(self.set_index):
+    for iset in range(self.set_num):
+      # print("index: %d, iset: %d\n" % (index, iset))
       if self.content[index][iset].get_valid():
         if self.content[index][iset].get_tag() == tag:
           self.content[index][iset].update_lru(lru)

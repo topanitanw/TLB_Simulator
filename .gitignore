@@ -1,6 +1,11 @@
 # emacs temp files
 *~
 .#*
+*.pyc
 cache
 __pycache__
+*.jpg
+simulator/experiment_result
+
+
 

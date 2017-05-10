@@ -13,7 +13,9 @@ FILE_NAME2 = "../config/test/conf_test2.conf"
 FILE_NAME3 = "../config/test/conf_test3.conf"
 
 def read_config(file_name):
-  config_file = open(file_name, 'r')
+  # try to use the absolute path instead of the relative one.
+  file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), file_name))
+  config_file = open(file_path, 'r')
   yaml_config = mYaml.load(config_file)
   config_file.close()
   return yaml_config

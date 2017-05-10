@@ -42,6 +42,8 @@ class Cpu:
         tlb_lst.append(self.dtlb[l])
         tlb_stats.append(self.dtlb_stats[l])
 
+    tlb_stats.append(Statistics())
+    
   def dtlb_lookup(self, dirty=False, tag=0, lru=0):
     return self.tlb_lookup(self.dtlb, self.dtlb_total_level, \
                            dirty, tag, lru)
@@ -58,6 +60,7 @@ class Cpu:
         break
     return hit
 
+  # update the overall stats
   def dlookup_update(self, res):
     self.dtlb_stats[-1].lookup_update(res)
 
